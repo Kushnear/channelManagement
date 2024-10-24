@@ -1,0 +1,29 @@
+/* src/styles/SettingsMenu.module.scss */
+.menu {
+  width: 192px;
+  background-color: #fff;
+  border-right: 1px solid #e5e7eb;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menuItem {
+  width: 100%;
+  text-align: left;
+  padding: 8px;
+  border-radius: 4px;
+  color: #4b5563;
+  background-color: transparent;
+  cursor: pointer;
+  border: none;
+}
+
+.menuItem:hover {
+  background-color: #f3f4f6;
+}
+
+.selected {
+  color: #f97316;
+}

@@ -1,0 +1,93 @@
+/* src/styles/ChannelSidebar.module.scss */
+.sidebar {
+  width: 64px;
+  background-color: #fff;
+  border-right: 1px solid #e5e7eb;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.channelList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.channelItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  .circle {
+    width: 40px;
+    height: 40px;
+    background-color: #3b82f6;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.channelItem:hover .circle {
+  background-color: #2563eb;
+}
+
+.selected .circle {
+  background-color: #2563eb;
+}
+
+.channelTitle {
+  position: absolute;
+  left: 50px;
+  height: 40px; /* Same as circle height */
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 14px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.addChannelButton {
+  width: 40px;
+  height: 40px;
+  border: 2px dashed #d1d5db;
+  border-radius: 50%;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.addChannelButton:hover {
+  border-color: #9ca3af;
+  color: #6b7280;
+}
+
+.newChannelForm {
+  position: absolute;
+  left: 64px;
+  background-color: #fff;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  width: 256px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

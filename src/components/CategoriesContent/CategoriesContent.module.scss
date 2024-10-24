@@ -1,0 +1,42 @@
+/* src/styles/CategoriesContent.module.scss */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.categoryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.actions button:hover {
+  color: #ef4444;
+}
