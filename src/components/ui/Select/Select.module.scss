@@ -1,7 +1,17 @@
-/* src/styles/ui/Select.module.scss */
 .select {
   border: 1px solid #d1d5db;
   border-radius: 4px;
   padding: 8px;
   width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.select.error {
+  border-color: #e03131;
+  box-shadow: 0 0 4px rgba(224, 49, 49, 0.6);
+}
+
+.select.valid {
+  border-color: #40c057;
+  box-shadow: 0 0 4px rgba(64, 192, 87, 0.6);
 }

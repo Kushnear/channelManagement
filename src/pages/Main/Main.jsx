@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ChannelSidebar from "../../components/ChannelSidebar/ChannelSidebar";
 import SettingsMenu from "../../components/SettingsMenu/SettingsMenu";
 import CategoriesContent from "../../components/CategoriesContent/CategoriesContent";
 import CategoryDialog from "../../components/CategoryDialog/CategoryDialog";
 import styles from "./Main.module.scss";
 import DataSourcesContent from "../../components/DataSourcesContent/DataSourcesContent";
-
+import DataSourcesDialog from "../../components/DataSourcesDialog/DataSourcesDialog";
 const apiAdress = "http://62.109.20.50:3512";
 const telegramUserId = "131067518";
 const authToken =
@@ -56,6 +56,9 @@ function Main() {
   const [loadingListeningChannels, setLoadingListeningChannels] =
     useState(true);
   const [errorListeningChannels, setErrorListeningChannels] = useState(null);
+  const [selectedListeningChannel, setSelectedListeningChannel] = useState({});
+  const [isDataSourceDialogOpen, setIsDataSourceDialogOpen] = useState(true);
+  const [isEditListeningChannel, setIsEditListeningChannel] = useState(false);
 
   // State for category form
   const [editingCategory, setEditingCategory] = useState(null);
@@ -86,7 +89,7 @@ function Main() {
         }
         const data = await response.json();
         setChannels(data.channels); // предполагается, что каналы в поле `channels`
-        console.log(data.channels);
+        // console.log("channels", data.channels);
         setSelectedChannel(data.channels[0]); // по умолчанию выбираем первый канал
       } catch (err) {
         setError(err.message);
@@ -118,7 +121,7 @@ function Main() {
         }
 
         const { post_categories } = await response.json();
-        console.log("this is post_categories", post_categories);
+        // console.log("this is post_categories", post_categories);
         setCategories(post_categories || []); // Set fetched categories
       } catch (err) {
         console.error(err.message);
@@ -129,32 +132,6 @@ function Main() {
   }, [selectedChannel]); // Fetch categories when a new channel is selected
 
   useEffect(() => {
-    const fetchListeningChannels = async () => {
-      try {
-        const response = await fetch(
-          `${apiAdress}/api/v1/channel/resources/${selectedChannel.id}/10/0`,
-          {
-            method: "GET",
-            headers: {
-              "x-auth-token": `${authToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          console.log("response ne ok v listerned", response);
-          throw new Error(`Ошибка запроса: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log("listened resources", data);
-        setListeningChannels(data.channels);
-      } catch (err) {
-        setErrorListeningChannels(err.message);
-      } finally {
-        setLoadingListeningChannels(false);
-      }
-    };
     if (selectedMenuItem === "data") {
       fetchListeningChannels();
     }
@@ -162,7 +139,7 @@ function Main() {
 
   const handleAddChannel = async () => {
     if (!isAddingChannel) {
-      console.log("i am about to add channel");
+      // console.log("i am about to add channel");
       setIsAddingChannel(true);
       return;
     }
@@ -194,6 +171,100 @@ function Main() {
         console.error(err.message);
       }
     }
+  };
+
+  const fetchListeningChannels = async () => {
+    try {
+      // setLoadingListeningChannels(true);
+      const response = await fetch(
+        `${apiAdress}/api/v1/resource/resources_by_channel`,
+        {
+          method: "POST",
+          headers: {
+            "x-auth-token": `${authToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            channel_id: selectedChannel.id,
+            limit: 10,
+            offset: 0,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.log("response ne ok v listened", response);
+        throw new Error(
+          `Ошибка запроса в fetchListeningChannels: ${response.status} `
+        );
+      }
+
+      const data = await response.json();
+
+      setListeningChannels(data);
+    } catch (err) {
+      setErrorListeningChannels(err.message);
+    } finally {
+      setLoadingListeningChannels(false);
+    }
+  };
+
+  const handleEditListeningChannel = (channelData) => {
+    console.log("handleEditListeningChannel is working");
+    console.log("and this channel is being edited", channelData);
+  };
+
+  const handleDeleteListeningChannel = async (channelData) => {
+    try {
+      const response = await fetch(
+        `${apiAdress}/api/v1/channel/${channelData.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "x-auth-token": `${authToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Не удалось удалить канал");
+      }
+
+      await fetchListeningChannels();
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const handleAddListeningChannel = async (channelData) => {
+    try {
+      const response = await fetch(`${apiAdress}/api/v1/channel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-auth-token": `${authToken}`,
+        },
+        body: JSON.stringify({
+          bot_user: { chat_id: telegramUserId },
+          url: channelData.url,
+          is_own: false,
+          bugged: true,
+          post_category_id: channelData.categoryId,
+          parent_channel_id: selectedChannel.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Не удалось добавить прослушиваемый канал");
+      }
+
+      const newChannel = await response.json();
+      await fetchListeningChannels();
+    } catch (err) {
+      console.error(err.message);
+    }
+    // console.log("handleAddListeningChannel is working", channelData);
   };
 
   // Обработчики для категорий
@@ -310,14 +381,17 @@ function Main() {
         setSelectedMenuItem={setSelectedMenuItem}
       />
       <div className={styles.mainContent}>
-        {selectedMenuItem === "data" && (
+        {selectedMenuItem === "data" && !loadingListeningChannels && (
           <DataSourcesContent
-            channels={listeningChannels}
-            // handleEditChannel={handleEditListeningChannel}
-            // handleDeleteChannel={handleDeleteListeningChannel}
-            // handleAddChannel={handleAddListeningChannel}
+            listeningChannels={listeningChannels}
+            handleEditListeningChannel={handleEditListeningChannel}
+            handleDeleteListeningChannel={handleDeleteListeningChannel}
+            handleAddListeningChannel={handleAddListeningChannel}
+            setIsdataSourceDialogOpen={setIsDataSourceDialogOpen}
             loading={loadingListeningChannels}
             error={errorListeningChannels}
+            setSelectedListeningChannel={setSelectedListeningChannel}
+            setIsEditListeningChannel={setIsEditListeningChannel}
           />
         )}
         {selectedMenuItem === "categories" && (
@@ -335,6 +409,20 @@ function Main() {
           </>
         )}
       </div>
+      <DataSourcesDialog
+        isDataSourceDialogOpen={isDataSourceDialogOpen}
+        setIsdataSourceDialogOpen={setIsDataSourceDialogOpen}
+        onSubmit={(channelData) => {
+          console.log("Channel data submitted:", channelData);
+          // Handle data submission here, e.g., making an API request
+        }}
+        channelData={selectedListeningChannel}
+        categories={categories}
+        isEditListeningChannel={isEditListeningChannel}
+        handleEditListeningChannel={handleEditListeningChannel}
+        handleAddListeningChannel={handleAddListeningChannel}
+        handleDeleteListeningChannel={handleDeleteListeningChannel}
+      />
       <CategoryDialog
         isDialogOpen={isDialogOpen}
         setIsDialogOpen={setIsDialogOpen}
@@ -347,6 +435,7 @@ function Main() {
         handleRemoveTime={handleRemoveTime}
         handleTimeChange={handleTimeChange}
         handleToggleRadio={handleToggleRadio}
+        categories={categories}
       />
     </div>
   );
